@@ -7,6 +7,8 @@ import { mergeWorktreeHandler } from "./commands/merge.js";
 import { purgeWorktreesHandler } from "./commands/purge.js";
 import { configHandler } from "./commands/config.js";
 import { prWorktreeHandler } from "./commands/pr.js";
+import { openWorktreeHandler } from "./commands/open.js";
+import { extractWorktreeHandler } from "./commands/extract.js";
 const program = new Command();
 program
     .name("wt")
@@ -52,20 +54,32 @@ program
     .description("Fetch the branch for a given GitHub PR number and create a worktree.")
     .action(prWorktreeHandler);
 program
+    .command("open")
+    .argument("[pathOrBranch]", "Path to worktree or branch name to open")
+    .option("-e, --editor <editor>", "Editor to use for opening the worktree (overrides default editor)")
+    .description("Open an existing worktree in the editor.")
+    .action(openWorktreeHandler);
+program
+    .command("extract")
+    .argument("[branchName]", "Name of the branch to extract (defaults to current branch)")
+    .option("-p, --path <path>", "Relative path/folder name for the worktree")
+    .option("-i, --install <packageManager>", "Package manager to use for installing dependencies (npm, pnpm, bun, etc.)")
+    .option("-e, --editor <editor>", "Editor to use for opening the worktree (overrides default editor)")
+    .description("Extract an existing branch as a new worktree. If no branch is specified, extracts the current branch.")
+    .action(extractWorktreeHandler);
+program
     .command("config")
     .description("Manage CLI configuration settings.")
-    .addCommand(new Command("set")
-    .description("Set a configuration value.")
-    .addCommand(new Command("editor")
+    .addCommand(new Command("set").description("Set a configuration value.").addCommand(new Command("editor")
     .argument("<editorName>", "Name of the editor command (e.g., code, cursor, webstorm)")
     .description("Set the default editor to open worktrees in.")
-    .action((editorName) => configHandler('set', 'editor', editorName))))
+    .action((editorName) => configHandler("set", "editor", editorName))))
     .addCommand(new Command("get")
     .description("Get a configuration value.")
     .addCommand(new Command("editor")
     .description("Get the currently configured default editor.")
-    .action(() => configHandler('get', 'editor'))))
+    .action(() => configHandler("get", "editor"))))
     .addCommand(new Command("path")
     .description("Show the path to the configuration file.")
-    .action(() => configHandler('path')));
+    .action(() => configHandler("path")));
 program.parse(process.argv);
